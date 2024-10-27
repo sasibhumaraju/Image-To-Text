@@ -16,7 +16,7 @@ The Image to Text Converter uses advanced Optical Character Recognition (OCR) te
 
 ## How to Use
 
-1. **Visit the Webpage**: Go to [Image to Text Converter](http://your-webpage-url.com) in your web browser.
+1. **Visit the Webpage**: Go to [Image to Text Converter](sasibhumaraju.github.io/Image-To-Text) in your web browser.
 2. **Upload an Image**: Click on the "Choose File" button to select an image from your device.
 3. **Submit the Image**: After selecting the image, click the "Submit" button.
 4. **View Extracted Text**: The extracted text will appear on the screen, ready for you to copy or edit.
