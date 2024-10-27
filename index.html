@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Image to Text API</title>
+    <style>
+        body {
+            font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: max-content;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        #dropArea {
+            width: calc(100vw - 60px);
+            max-width: calc(900px - 60px);
+            padding: 20px;
+            height: 170px;
+            border: 2px dashed #cccccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px auto;
+            color: #777;
+            text-align: center;
+            flex-direction: column;
+            margin: 10px;
+            font-size: 15px;
+        }
+        #dropArea.dragover {
+            border-color: #333;
+            background-color: #f0f0f0;
+        }
+
+        #imageFile {
+            display: none;
+        }
+
+        .beforeSelection {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .afterSelection {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 100px;
+            font-weight: bolder;
+            cursor: pointer;
+        }
+
+        button {
+            width: calc(100vw - 20px);
+            max-width: calc(900px - 20px);
+            margin: 10px 10px;
+            padding: 10px;
+            cursor: pointer;
+            border: 0px solid;
+            outline: 2px #cccccc solid;
+            background-color: rgb(255, 255, 255);
+            border-radius: 3px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #extractedText {
+            width: calc(100vw - 20px);
+            max-width: calc(900px - 20px);
+            margin: 10px 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: start;
+            align-items: start;
+            flex-direction: column;
+        }
+
+        #list li {
+            margin-bottom: 6px;
+        }
+
+    </style>
+</head>
+<body>
+    <h2>Image To Text : developed by <a href="https://github.com/sasibhumaraju" target="_blank">@sasibhumaraju</a></h2>
+    <form id="imageForm">
+        <input type="file" id="imageFile" name="imageFile" accept="image/jpeg, image/png" />
+        <div id="dropArea">
+            <div class="beforeSelection">
+                <label for="imageFile">+</label>
+                Drag & drop an image here, or paste it
+            </div>
+            <div class="afterSelection"> </div>
+        </div>
+            
+        <!-- <button id="submitButton" type="submit">Submit</button> -->
+    </form>
+    <div id="extractedText">
+        <ul id="list">
+
+        </ul>
+    </div>
+
+    <script>
+        const imageForm = document.getElementById("imageForm");
+        const imageFileInput = document.getElementById("imageFile");
+        // const submitButton = document.getElementById("submitButton");
+        const list = document.getElementById("list");
+        const dropArea = document.getElementById("dropArea");
+        const beforeS = document.querySelector(".beforeSelection")
+        const afterS = document.querySelector(".afterSelection");
+        let imageFile;
+        
+         function afterSFunc () {
+            beforeS.style.display = "none"; 
+            afterS.innerHTML = JSON.stringify(imageFile.name) +' ' + " Please wait, extracting text...";
+            afterS.style.display = "flex"
+         }
+
+         function beforeSFunc () {
+            beforeS.style.display = "flex"; 
+            afterS.innerHTML = "";
+            afterS.style.display = "none"
+         }
+        
+        //  function submitButtonDisable () {
+        //     submitButton.innerHTML = "Please wait, extrating text from image..."
+        //     submitButton.disabled = true;
+        //  }
+
+        //  function submitButtonReable () {
+        //     submitButton.innerHTML = "Submit"
+        //     submitButton.disabled = false;
+        //  }
+
+         function listAddChildText (text) {
+            const ele = document.createElement('li');
+            ele.innerHTML = text;
+            list.appendChild(ele);
+         }
+
+         function getText (data) {
+            let text = ''
+            if(data) {
+                for(let i = 0; i < data.length; i++) {
+                    text = text + ' ' + data[i].text
+                }
+            }
+            return text;
+         }
+
+        // Handle file selection
+        imageFileInput.addEventListener("change", (event) => {
+            imageFile = event.target.files[0];
+            if(imageFile) afterSFunc();
+            else beforeSFunc();
+            submitData()
+        });
+
+        // Drag-and-Drop
+        dropArea.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            dropArea.classList.add("dragover");
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.classList.remove("dragover");
+        });
+
+        dropArea.addEventListener("drop", (event) => {
+            event.preventDefault();
+            dropArea.classList.remove("dragover");
+            if (event.dataTransfer.files.length > 0) {
+                imageFile = event.dataTransfer.files[0];
+                if(imageFile) afterSFunc();
+                else beforeSFunc();
+                // alert("Image file selected via drag-and-drop.");
+                submitData()
+            }
+        });
+
+        // Copy-Paste
+        document.addEventListener("paste", (event) => {
+            const items = event.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf("image") !== -1) {
+                    const blob = items[i].getAsFile();
+                    imageFile = blob;
+                    if(imageFile) afterSFunc();
+                    else beforeSFunc();
+                    // alert("Image file selected via paste.");
+                    submitData()
+                    break;
+                }
+            }
+        });
+
+        // Submit form
+        // imageForm.addEventListener("submit", 
+        async function submitData () {
+            // event.preventDefault();
+            if (!imageFile) {
+                // submitButtonReable()
+                beforeSFunc()
+                alert("Please select or drop an image file.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("image", imageFile);
+
+            try {
+                // submitButtonDisable()
+                const response = await fetch("https://api.api-ninjas.com/v1/imagetotext", {
+                    method: "POST",
+                    headers: {
+                        "X-Api-Key": "YOUR_API_KEY" // Replace with your actual API key
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log(data);
+                const t = getText(data)
+                listAddChildText(t)
+                // alert("Text extracted succesfully");
+                // submitButtonReable()
+                beforeSFunc()
+            } catch (error) {
+                console.error("Error uploading file:", error);
+                alert("Failed to extract text from image.");
+                // submitButtonReable()
+                beforeSFunc()
+            }
+        }
+    </script>
+</body>
+</html>
